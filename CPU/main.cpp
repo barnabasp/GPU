@@ -4,9 +4,9 @@
 // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 //
 #include "funcs.hpp"
-#include <iostream>
 
 int main(int, char**) 
 {
-    std::cout << "Hello, world!\n";
+    ConwayTable temp(5,5);
+    temp.printGrid();
 }
