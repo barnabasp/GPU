@@ -7,6 +7,12 @@
 
 int main(int, char**) 
 {
-    ConwayTable temp(5,5);
-    temp.printGrid();
+    ConwayTable temp(10,10, 2);
+    temp.dumpGrid();
+    for(int gen = 0; gen < 10; gen++)
+    {
+        temp.applyRules();
+        std::cout << '\n';
+        temp.dumpGrid();
+    }
 }
