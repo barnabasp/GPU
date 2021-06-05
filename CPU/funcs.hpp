@@ -5,6 +5,12 @@
 #include <vector>
 #include <random>
 #include <numeric>
+//parallelisation
+#include <thread>
+#include <mutex>
+#include <atomic>
+//time
+#include <chrono>
 
 
 class ConwayTable
@@ -17,6 +23,7 @@ private:
     int m_cols;
     int m_rule;
     bool m_inp;
+    
 public:
     //constructors
     ConwayTable() = default;
@@ -38,6 +45,8 @@ public:
     void initialize();
     void dumpGrid(); //prints out grid to console
     void applyRules(); //checks and applies the rules of the game
+    void paraInitialize(); //paralel: initialization
+    void paraApplyRules(); //paralel: checks and applies the rules of the game
 
 };
 

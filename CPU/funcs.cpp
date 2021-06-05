@@ -101,3 +101,80 @@ void ConwayTable::applyRules()
     //the next status is now the current
     grid.swap(next_status);
 }
+//+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-Parallel Class functions+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+void ConwayTable::paraInitialize()
+{
+    int max_num_of_threads = (int)std::thread::hardware_concurrency(); //number of threads
+    int row_per_thread = m_rows / max_num_of_threads;
+    int col_per_thread = m_cols / max_num_of_threads;
+    if(m_rows % max_num_of_threads != 0)
+    {
+        std::cout<< "The grid dimensions are: ";
+        m_rows = row_per_thread * max_num_of_threads;
+    }
+    if(m_cols % max_num_of_threads != 0)
+        m_cols = col_per_thread * max_num_of_threads;
+    std::cout << "Rows: " << m_rows << " Cols: " << m_cols << std::endl;
+    grid.resize(m_rows, std::vector<int>(m_cols)); //defining the future grid - needed for both type of inputs
+    next_status.resize(m_rows, std::vector<int>(m_cols)); //defining the future grid - needed for both type of inputs
+
+    std::random_device rd;  //Will be used to obtain a seed for the random number engine
+    std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+    std::uniform_real_distribution<> dis(0.0, 1.0);
+
+    for(int i_thread = 0; i_thread < max_num_of_threads; i_thread++)
+    for(int i = 0; i < m_rows ; i++)
+    {
+        for(int j = 0; j < m_cols; j++)
+        {
+            grid[i][j] = (dis(gen)> 0.5 ? 0 : 1);
+        }
+    }
+}
+void ConwayTable::paraApplyRules()
+{
+    int temp;
+    for(int i_row = 0; i_row < m_rows; i_row++)
+    {
+       for(int i_col = 0; i_col < m_cols; i_col++)
+       {
+            temp = 0; //holder for dead or alive cells
+            for(int j_row = i_row-1; j_row <= i_row+1; j_row++) //loops through surrounding rows
+            {
+                for(int j_col = i_col-1; j_col <= i_col+1; j_col++) //loops through surrounding columns
+                {
+                    int x = j_row;
+                    int y = j_col;
+                    if(j_row == i_row && j_col == i_col) //if on the cell we are checking, jump out of the loop
+                    {
+                        continue;
+                    }
+                    else //if periodic boundaries are set, loop them on the other side
+                    {
+                        if(j_row == -1) x += m_rows;
+                        if(j_col == -1) y += m_cols;
+                        if(j_row == m_rows) x -= m_rows;
+                        if(j_col == m_cols) y -= m_cols;
+                        temp += grid[x][y];
+                    }
+
+                }
+
+            }
+            if(temp == m_rule) //stays
+            {
+                next_status[i_row][i_col] = grid[i_row][i_col];
+            }
+            else if(temp == m_rule+1) //lives
+            {
+                next_status[i_row][i_col] = 1; 
+            }
+            else //dies
+            {
+                next_status[i_row][i_col] = 0; 
+            }
+        }
+    }
+    //the next status is now the current
+    grid.swap(next_status);
+}
