@@ -9,11 +9,13 @@ void ConwayTable::initialize()
     if(m_inp)
     {
         grid.resize(m_rows, std::vector<int>(m_cols)); //defining the grid - grid needs to have the same size as the input
-        //need to modify later
+        std::vector<std::vector<int> > fileHolder;
         std::ifstream inputfile;
         inputfile.open("C:\\Users\\220mp\\Documents\\ELTE_MSc\\GPU\\Project\\CPU\\input_10x10.txt");
+        if(!inputfile.is_open()) {std::cout << "Incorrect file, exiting..."; exit(-1);}
         for(int i = 0; i < m_rows ; i++)
         {
+            std::vector<int> temp; //holder for 1 line
             for(int j = 0; j < m_cols; j++)
             {
                 inputfile >>  grid[i][j]; //read the current, single value
@@ -59,7 +61,7 @@ void ConwayTable::applyRules()
     {
        for(int i_col = 0; i_col < m_cols; i_col++)
        {
-            temp = 0;
+            temp = 0; //holder for dead or alive cells
             for(int j_row = i_row-1; j_row <= i_row+1; j_row++) //loops through surrounding rows
             {
                 for(int j_col = i_col-1; j_col <= i_col+1; j_col++) //loops through surrounding columns
