@@ -7,13 +7,13 @@
 
 int main(int, char**) 
 {
-    ConwayTable temp(100,100, 2);
+    ConwayTable temp(12,12, 2);
     temp.paraInitialize();
-    //temp.dumpGrid();
-    for(int gen = 0; gen < 100; gen++)
+    temp.dumpGrid();
+    for(int gen = 0; gen < 1; gen++)
     {
-        temp.applyRules();
-        //std::cout << '\n';
-        //temp.dumpGrid();
+        temp.makeThreads();
+        std::cout << '\n';
+        temp.dumpGrid();
     }
 }

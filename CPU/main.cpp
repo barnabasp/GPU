@@ -7,7 +7,7 @@
 
 int main(int, char**) 
 {
-    ConwayTable temp(10,10, 2);
+    ConwayTable temp(10,10, 2, 1);
     temp.initialize();
     temp.dumpGrid();
     for(int gen = 0; gen < 10; gen++)
