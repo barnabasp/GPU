@@ -60,6 +60,27 @@ void ConwayTable::dumpGrid() //prints out grid to console
         std::cout << '\n';
     }
 }
+void ConwayTable::writeFile(int gen, time_t genTime, bool parallel)
+{
+    std::stringstream fileName(""); fileName << "C:\\Users\\220mp\\Documents\\ELTE_MSc\\GPU\\Project\\CPU\\outputs\\" << "para" << parallel << "-"<< m_rows << "x" << m_cols << "-gen_" << gen  << ".txt";
+    std::ofstream file(fileName.str().c_str());
+    std::vector<std::vector<int>> currGrid = getGrid();
+    //header
+    file << "#T " << genTime << std::endl;
+    for (int i_row = 0; i_row < m_rows; i_row++)
+    {
+        for (int i_col = 0; i_col < m_cols; i_col++)
+        {
+            if (currGrid[i_row][i_col] == 1)
+                file << "+,";
+            else
+                file << "-,";
+        }
+        file << '\n';
+    }
+    file.close();
+
+}
 void ConwayTable::applyRules()
 {
     int temp;
@@ -110,17 +131,18 @@ void ConwayTable::applyRules()
     //the next status is now the current
     setGrid(next_status);
 }
+//+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 //+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-Parallel Class functions+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+//+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 void ConwayTable::paraInitialize()
 {
     max_num_of_threads = (int)std::thread::hardware_concurrency(); //number of threads
+    //for easier use, resize the grid if the dimensions have left over when dividing by the number of threads
     row_per_thread = m_rows / max_num_of_threads;
     col_per_thread = m_cols / max_num_of_threads;
     std::cout << "The grid dimensions are: ";
     if (m_rows % max_num_of_threads != 0)
-    {
         m_rows = row_per_thread * max_num_of_threads;
-    }
     if (m_cols % max_num_of_threads != 0)
         m_cols = col_per_thread * max_num_of_threads;
     std::cout << "Rows: " << m_rows << " Cols: " << m_cols << std::endl;
@@ -131,19 +153,15 @@ void ConwayTable::paraInitialize()
     std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
     std::uniform_real_distribution<> dis(0.0, 1.0);
 
-    /*
-    std::mutex m;
-    std::condition_variable cv;
-*/
-
     for (int i = 0; i < m_rows; i++)
     {
         for (int j = 0; j < m_cols; j++)
         {
-            //currGrid[i][j] = (dis(gen) > 0.5 ? 0 : 1);
-            currGrid[i][j] = 0;
+            currGrid[i][j] = (dis(gen) > 0.5 ? 0 : 1);
+            //currGrid[i][j] = 0;
         }
     }
+    /*
     currGrid[3][1] = 1;
     currGrid[3][2] = 1;
     currGrid[3][3] = 1;
@@ -151,7 +169,7 @@ void ConwayTable::paraInitialize()
     currGrid[3][8] = 1;
     currGrid[4][8] = 1;
     currGrid[5][8] = 1;
-
+    */
     setGrid(currGrid);
 }
 void ConwayTable::paraApplyRules(int i_thrd, std::vector<std::vector<int>> currGrid)
@@ -159,6 +177,7 @@ void ConwayTable::paraApplyRules(int i_thrd, std::vector<std::vector<int>> currG
     int temp;
     int rule = getRule();
     std::vector<int> currentLine(m_cols); //holder for this thread's line
+    std::unique_lock<std::mutex> lock(m);
     for (int i_row = i_thrd * row_per_thread; i_row < (i_thrd + 1) * row_per_thread; i_row++)
     {
         for (int i_col = 0; i_col < m_cols; i_col++)
@@ -201,14 +220,26 @@ void ConwayTable::paraApplyRules(int i_thrd, std::vector<std::vector<int>> currG
                 currentLine[i_col] = 0;
             }
         }
+        //not exactly sure...
+        if(threadCnt == getMaxThreads() - 1)
+        {
+            cv.notify_all();
+        }
+        else 
+        {
+            threadCnt++;
+            cv.wait(lock);
+        }
         //give the current rows the values
         grid[i_row] = currentLine;
     }
 }
 void ConwayTable::makeThreads()
 {
+    m_threads.clear(); //clear the holder for the new threads
     for (int i_thread = 0; i_thread < getMaxThreads(); i_thread++)
     {
+        //give the threads each their own task
         m_threads.push_back(std::thread(&ConwayTable::paraApplyRules, this, i_thread, getGrid()));
     }
     for (auto &t : m_threads)

@@ -27,11 +27,9 @@ private:
     int max_num_of_threads;
     int row_per_thread;
     int col_per_thread;
-    /*
     std::atomic<int> threadCnt;
     std::mutex m;
     std::condition_variable cv;
-    */
     
 public:
     //constructors
@@ -58,6 +56,7 @@ public:
     auto setGrid(std::vector<std::vector<int> > newGrid) { grid.swap(newGrid);};
     void initialize();
     void dumpGrid(); //prints out grid to console
+    void writeFile(int gen, time_t genTime, bool parallel); //write grid out to a file;
     void applyRules(); //checks and applies the rules of the game
     void makeThreads(); //add tasks to threads
     void paraInitialize(); //paralel: initialization
