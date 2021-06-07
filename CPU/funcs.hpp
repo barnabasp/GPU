@@ -4,6 +4,7 @@
 #include <fstream>
 #include <vector>
 #include <random>
+#include <array>
 #include <numeric>
 //parallelisation
 #include <thread>
@@ -18,6 +19,7 @@ class ConwayTable
 private:
     std::vector<std::vector<int> > grid; //starting canvas or grid with size N+2, M+2 for the edges
     std::vector<std::vector<int> > next_status; //next status holder canvas or grid, same size
+    std::array<std::vector<int>, 2> grids;
     std::vector<std::thread> m_threads;
     //dimensions of the table
     int m_rows;
@@ -60,7 +62,7 @@ public:
     void applyRules(); //checks and applies the rules of the game
     void makeThreads(); //add tasks to threads
     void paraInitialize(); //paralel: initialization
-    void paraApplyRules(int i_thrd, std::vector<std::vector<int> > currGrid); //paralel: checks and applies the rules of the game
+    void paraApplyRules(int i_thrd); //paralel: checks and applies the rules of the game
 
 };
 
