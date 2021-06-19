@@ -27,6 +27,7 @@ private:
     int m_rule;
     bool m_inp;
     int max_num_of_threads;
+    int leftover_row;
     int row_per_thread;
     int col_per_thread;
     std::atomic<int> threadCnt;
@@ -42,6 +43,7 @@ public:
         m_cols = cols;
         m_rule = rule;
         m_inp = 0;
+        leftover_row = 0;
     }
 
     ConwayTable(int rows, int cols, int rule, bool inp)
@@ -50,19 +52,20 @@ public:
         m_cols = cols;
         m_rule = rule;
         m_inp = inp;
+        leftover_row = 0;
     }
     int getMaxThreads() {return max_num_of_threads;};
     int getRule() {return m_rule;};
     auto getGrid() {return grid;};
     auto getNextGrid() {return next_status;};
-    auto setGrid(std::vector<std::vector<int> > newGrid) { grid.swap(newGrid);};
+    auto setGrid() { grids[0] = grids[1]; };
     void initialize();
     void dumpGrid(); //prints out grid to console
     void writeFile(int gen, time_t genTime, bool parallel); //write grid out to a file;
     void applyRules(); //checks and applies the rules of the game
     void makeThreads(); //add tasks to threads
     void paraInitialize(); //paralel: initialization
-    void paraApplyRules(int i_thrd); //paralel: checks and applies the rules of the game
+    void paraApplyRules(int i_row_count); //paralel: checks and applies the rules of the game
 
 };
 

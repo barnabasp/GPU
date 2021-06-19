@@ -34,30 +34,34 @@ void ConwayTable::dumpGrid() //prints out grid to console
 }
 void ConwayTable::writeFile(int gen, time_t genTime, bool parallel)
 {
+    //seting up the string name for the file
     std::stringstream fileName(""); fileName << "C:\\Users\\220mp\\Documents\\ELTE_MSc\\GPU\\Project\\CPU\\outputs\\" << "para" << parallel << "-"<< m_rows << "x" << m_cols << "-gen_" << gen  << ".txt";
     std::ofstream file(fileName.str().c_str());
     std::vector<std::vector<int>> currGrid = getGrid();
     //header
     file << "#T " << genTime << std::endl;
     //body
-    for (int i_row = 0; i_row < m_rows; i_row++)
+    int idx;
+    for (int i_row = 1; i_row < m_rows-1; i_row++)
     {
-        for (int i_col = 0; i_col < m_cols; i_col++)
+        for (int i_col = 1; i_col < m_cols-1; i_col++)
         {
-            if (currGrid[i_row][i_col] == 1)
+            idx = i_row * m_cols + i_col;
+            if (grids[0][idx] == 1)
                 file << "+,";
             else
                 file << "-,";
         }
-        file << '\n';
+        file << "\n";
     }
     file.close();
 
 }
-void ConwayTable::applyRules()
+void ConwayTable::applyRules() //apply the rules of the game
 {
     int temp;
     int idx = 0;
+    //loop throught the grid, excluding the border indices
     for (int i_row = 1; i_row < m_rows-1; i_row++)
     {
         for (int i_col = 1; i_col < m_cols-1; i_col++)
@@ -92,17 +96,11 @@ void ConwayTable::applyRules()
 //+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 //+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-Parallel Class functions+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 //+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-void ConwayTable::paraInitialize()
+void ConwayTable::paraInitialize() //initialize for parallel - maybe not needed a separate function, but this is maybe easier on the eye
 {
     max_num_of_threads = (int)std::thread::hardware_concurrency(); //number of threads
     //for easier use, resize the grid if the dimensions have left over when dividing by the number of threads
-    row_per_thread = m_rows / max_num_of_threads;
-    col_per_thread = m_cols / max_num_of_threads;
     std::cout << "The grid dimensions are: ";
-    if (m_rows % max_num_of_threads != 0)
-        m_rows = row_per_thread * max_num_of_threads;
-    if (m_cols % max_num_of_threads != 0)
-        m_cols = col_per_thread * max_num_of_threads;
     std::cout << "Rows: " << m_rows << " Cols: " << m_cols << std::endl;
     grids[0].resize(m_cols * m_rows);
     grids[1].resize(m_cols * m_rows);
@@ -112,69 +110,53 @@ void ConwayTable::paraInitialize()
     std::uniform_real_distribution<> dis(0.0, 1.0);
     for (int i = 0; i < m_rows * m_cols; i++)
     {
-            //grids[0][i] = (dis(gen) > 0.5 ? 0 : 1);
-            grids[0][i] = 0;
+            grids[0][i] = (dis(gen) > 0.5 ? 0 : 1);
+            //grids[0][i] = 0;
     }
-    grids[0][2 + m_cols * 2] = 1;
-    grids[0][2 + m_cols * 3] = 1;
-    grids[0][2 + m_cols * 4] = 1;
+    //grids[0][2 + m_cols * 2] = 1;
+    //grids[0][2 + m_cols * 3] = 1;
+    //grids[0][2 + m_cols * 4] = 1;
 }
-void ConwayTable::paraApplyRules(int i_thrd)
+void ConwayTable::paraApplyRules(int i_row_count)
 {
     int temp;
     int idx;
-    std::vector<int> currentLine(m_cols); //holder for this thread's line
-    //std::unique_lock<std::mutex> lock(m);
-    for (int i_row = i_thrd * row_per_thread; i_row < (i_thrd + 1) * row_per_thread; i_row++)
+    //std::cout << "\nrunning thread at: " << i_row_count << std::endl;
+    for (int i_col = 1; i_col < m_cols-1; i_col++)
     {
-        for (int i_col = 0; i_col < m_cols; i_col++)
+        temp = 0; //holder for dead or alive cells
+        idx = i_row_count * m_cols + i_col;
+        temp += grids[0][(i_row_count - 1) * m_cols + i_col] + //up
+                grids[0][(i_row_count + 1) * m_cols + i_col] + //down
+                grids[0][i_row_count * m_cols + (i_col - 1)] + //left
+                grids[0][i_row_count * m_cols + (i_col + 1)] + //right
+                grids[0][(i_row_count - 1) * m_cols + (i_col - 1)] + //up and right
+                grids[0][(i_row_count - 1) * m_cols + (i_col + 1)] + //up and right
+                grids[0][(i_row_count + 1) * m_cols + (i_col - 1)] + //down and right
+                grids[0][(i_row_count + 1) * m_cols + (i_col + 1)]; //down and right
+        if (temp == m_rule) //stays
         {
-            temp = 0; //holder for dead or alive cells
-            idx = i_row * m_cols + i_col;
-            temp += grids[0][(i_row - 1) * m_cols + i_col] + //up
-                    grids[0][(i_row + 1) * m_cols + i_col] + //down
-                    grids[0][i_row * m_cols + (i_col - 1)] + //left
-                    grids[0][i_row * m_cols + (i_col + 1)] + //right
-                    grids[0][(i_row - 1) * m_cols + (i_col - 1)] + //up and right
-                    grids[0][(i_row - 1) * m_cols + (i_col + 1)] + //up and right
-                    grids[0][(i_row + 1) * m_cols + (i_col - 1)] + //down and right
-                    grids[0][(i_row + 1) * m_cols + (i_col + 1)]; //down and right
-            if (temp == m_rule) //stays
-            {
-                grids[1][idx] = grids[0][idx];
-            }
-            else if (temp == m_rule + 1) //lives
-            {
-                grids[1][idx] = 1;
-            }
-            else //dies
-            {
-                grids[1][idx] = 0;
-            }
+            grids[1][idx] = grids[0][idx];
         }
-        //not exactly sure...
-        /*
-        if(threadCnt == getMaxThreads() - 1)
+        else if (temp == m_rule + 1) //lives
         {
-            cv.notify_all();
+            grids[1][idx] = 1;
+
         }
-        else 
+        else //dies
         {
-            threadCnt++;
-            cv.wait(lock);
+            grids[1][idx] = 0;
         }
-        */
-        //give the current rows the values
-        grid[i_row] = currentLine;
     }
 }
-void ConwayTable::makeThreads()
+void ConwayTable::makeThreads() //add a row to each threads and then execute
 {
-    m_threads.clear(); //clear the holder for the new threads
-    for (int i_thread = 0; i_thread < getMaxThreads(); i_thread++)
+    m_threads.clear(); //clear the holder for the new generation
+    for(int i_row_count = 1; i_row_count < m_rows - 1; i_row_count++)
     {
         //give the threads each their own task
-        m_threads.push_back(std::thread(&ConwayTable::paraApplyRules, this, i_thread));
+        //std::cout << "\nrow_counter: " <<i_row_count << std::endl;
+        m_threads.push_back(std::thread(&ConwayTable::paraApplyRules, this, i_row_count));
     }
     for (auto &t : m_threads)
         t.join();

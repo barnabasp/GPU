@@ -4,9 +4,9 @@
 // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 //
 #include "funcs.hpp"
-#define GEN 1
-#define ROWS 6
-#define COLS 6
+#define GEN 10
+#define ROWS 50
+#define COLS 50
 #define RULE 2
 
 int main(int, char**) 
@@ -17,25 +17,19 @@ int main(int, char**)
     ConwayTable table(ROWS+2, COLS+2, RULE);
     //time measurement
     std::vector<time_t> timeMeasure;
-    table.initialize();
-    table.dumpGrid();
-    table.applyRules();
-    table.dumpGrid();
-    table.applyRules();
-    table.dumpGrid();
-    /*
+    table.paraInitialize();
     for(int gen = 0; gen < GEN; gen++)
     {
         auto t0 = std::chrono::high_resolution_clock::now();
         table.makeThreads();
         auto t1 = std::chrono::high_resolution_clock::now();
-        //std::cout << '\n';
-        table.dumpGrid();
+        std::cout << '\n';
+        table.setGrid();
+        //table.dumpGrid();
         timeMeasure.push_back(std::chrono::duration_cast<std::chrono::microseconds>(t1-t0).count());
-        //table.writeFile(gen, timeMeasure[gen], parallel);
-        //std::cout << "time: "<< timeMeasure[gen] << std::endl;
+        table.writeFile(gen, timeMeasure[gen], parallel);
+        std::cout << "time: "<< timeMeasure[gen] << "\tin gen: " << gen << std::endl;
     }
-    */
     /*
     parallel = 0;
     //create the object
