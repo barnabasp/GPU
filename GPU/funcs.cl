@@ -1,5 +1,8 @@
-__kernel void applyRules()
+__kernel void applyRules(double a, __global double* x, __global double* y)
 {
+    size_t gid = get_global_id(0);
+    y[gid] = a * x[gid] + y[gid];
+    /*
     int temp;
     int idx = 0;
     //loop throught the grid, excluding the border indices
@@ -33,4 +36,5 @@ __kernel void applyRules()
         }
     }
     grids[0] = grids[1];
+    */
 }
