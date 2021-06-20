@@ -94,7 +94,7 @@ int main()
         
         std::cout << "Executing game of life with rule: " << rule << " on a grid " << N << "x" << M << std::endl;
         //loop over the generations
-        for(unsigned int gen = 0; gen < 20; gen++)
+        for(unsigned int gen = 0; gen < generation; gen++)
         {
             //create a buffer with the grids
             cl::Buffer buf_x{ std::begin(grids[0]), std::end(grids[0]), true },
