@@ -1,5 +1,6 @@
 __kernel void applyRules(__global int* grid1, __global int* grid2, int N, int M, int rule)
 {
+
     //get the two dimension
     int i_row = get_global_id(0);
     int i_col = get_global_id(1);

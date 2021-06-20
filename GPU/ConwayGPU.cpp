@@ -88,7 +88,6 @@ int main()
         grids[0][2 + M*4] = 1;
         grids[0][3 + M*4] = 1;
         */
-
         //container for time measurement
         //not necessarily needed a vector, but it's stored always
         std::vector<time_t> timeMeasure;
