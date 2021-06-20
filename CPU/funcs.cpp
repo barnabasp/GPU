@@ -37,7 +37,6 @@ void ConwayTable::writeFile(int gen, time_t genTime, bool parallel)
     //seting up the string name for the file
     std::stringstream fileName(""); fileName << "C:\\Users\\220mp\\Documents\\ELTE_MSc\\GPU\\Project\\CPU\\outputs\\" << "para" << parallel << "-"<< m_rows << "x" << m_cols << "-gen_" << gen  << ".txt";
     std::ofstream file(fileName.str().c_str());
-    std::vector<std::vector<int>> currGrid = getGrid();
     //header
     file << "#T " << genTime << std::endl;
     //body
