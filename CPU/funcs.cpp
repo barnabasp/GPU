@@ -12,12 +12,14 @@ void ConwayTable::initialize()
     std::uniform_real_distribution<> dis(0.0, 1.0);
     for (int i = 0; i < m_rows * m_cols; i++)
     {
-            //grids[0][i] = (dis(gen) > 0.5 ? 0 : 1);
-            grids[0][i] = 0;
+            grids[0][i] = (dis(gen) > 0.5 ? 0 : 1);
+            //grids[0][i] = 0;
     }
+    /*
     grids[0][2 + m_cols * 2] = 1;
     grids[0][2 + m_cols * 3] = 1;
     grids[0][2 + m_cols * 4] = 1;
+    */
 }
 void ConwayTable::dumpGrid() //prints out grid to console
 {
