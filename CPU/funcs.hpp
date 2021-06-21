@@ -8,8 +8,6 @@
 #include <numeric>
 //parallelisation
 #include <thread>
-#include <mutex>
-#include <atomic>
 //time
 #include <chrono>
 
@@ -17,22 +15,18 @@
 class ConwayTable
 {
 private:
-    std::vector<std::vector<int> > grid; //starting canvas or grid with size N+2, M+2 for the edges
-    std::vector<std::vector<int> > next_status; //next status holder canvas or grid, same size
-    std::array<std::vector<int>, 2> grids;
+    std::array<std::vector<int>, 2> grids; //container for the current and next status of the grid
     std::vector<std::thread> m_threads;
     //dimensions of the table
     int m_rows;
     int m_cols;
+    //rule for the game
     int m_rule;
+    //if there's an input - DO NOT USE, IT'S NOT SET UP
     bool m_inp;
+
     int max_num_of_threads;
     int leftover_row;
-    int row_per_thread;
-    int col_per_thread;
-    std::atomic<int> threadCnt;
-    std::mutex m;
-    std::condition_variable cv;
     
 public:
     //constructors
@@ -56,16 +50,14 @@ public:
     }
     int getMaxThreads() {return max_num_of_threads;};
     int getRule() {return m_rule;};
-    auto getGrid() {return grid;};
-    auto getNextGrid() {return next_status;};
-    auto setGrid() { grids[0] = grids[1]; };
+    auto setGrid() { grids[0].swap(grids[1]); };
     void initialize();
     void dumpGrid(); //prints out grid to console
     void writeFile(int gen, time_t genTime, bool parallel); //write grid out to a file;
     void applyRules(); //checks and applies the rules of the game
     void makeThreads(); //add tasks to threads
     void paraInitialize(); //paralel: initialization
-    void paraApplyRules(int i_row_count); //paralel: checks and applies the rules of the game
+    void paraApplyRules(int i_thread, int row_per_thread); //paralel: checks and applies the rules of the game
 
 };
 
