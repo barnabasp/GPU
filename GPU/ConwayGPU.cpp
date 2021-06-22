@@ -34,32 +34,12 @@ int main()
         cl::Program program{ std::string{ std::istreambuf_iterator<char>{ source_file },
                              std::istreambuf_iterator<char>{} } };
         program.build({ device } );
-        /*
-        cl::Kernel applyRules(program, "applyRules");
-        applyRules.setArg(0, buffer_A);
-        applyRules.setArg(1, buffer_B);
-        applyRules.setArg(2, buffer_C);
-        queue.enqueueNDRangeKernel(applyRules,cl::NullRange,cl::NDRange(10),cl::NullRange);
-        queue.finish();
-        */
-        //cl::Kernel kernel(program, "applyRules");
-        auto conway = cl::KernelFunctor<cl::Buffer, cl::Buffer, cl_int, cl_int, cl_int>(program, "applyRules");
 
-        // Init computation
-        /*
-        const std::size_t chainlength = std::size_t(std::pow(2u, 4u)); // 1M, cast denotes floating-to-integral conversion,
-                                                                        //     promises no data is lost, silences compiler warning
-        std::vector<cl_float> vec_x(chainlength),
-                              vec_y(chainlength);
-        cl_float a = 2.0;
-        */
-        // Fill arrays with random values between 0 and 100
-        /*
-        auto prng = [engine = std::default_random_engine{},
-                     distribution = std::uniform_real_distribution<cl_float>{ -100.0, 100.0 }]() mutable { return distribution(engine); };
-        */
-        unsigned int N = 1e3;
-        unsigned int M = 1e3;
+        //create the functor
+        auto conway = cl::KernelFunctor<cl::Buffer, cl::Buffer, cl_int, cl_int, cl_int>(program, "applyRules");
+        //initialize
+        unsigned int N = 1e1;
+        unsigned int M = 1e1;
         unsigned int rule = 2;
         std::array<std::vector<cl_int>, 2> grids;
         unsigned int generation = 10;
@@ -71,8 +51,8 @@ int main()
         std::uniform_real_distribution<> dis(0.0, 1.0);
         for (unsigned int i = 0; i < (N * M); i++)
         {
-                grids[0][i] = (dis(gen) > 0.5 ? 0 : 1);
-                //grids[0][i] = 0;
+                //grids[0][i] = (dis(gen) > 0.5 ? 0 : 1);
+                grids[0][i] = 0;
         }
         //blinker oscillator
         /*
@@ -81,24 +61,22 @@ int main()
         grids[0][2 + M * 4] = 1;
         */
         //glider spaceship:
-        /*
         grids[0][2 + M*2] = 1;
         grids[0][3 + M*3] = 1;
         grids[0][1 + M*4] = 1;
         grids[0][2 + M*4] = 1;
         grids[0][3 + M*4] = 1;
-        */
         //container for time measurement
         //not necessarily needed a vector, but it's stored always
         std::vector<time_t> timeMeasure;
         
         std::cout << "Executing game of life with rule: " << rule << " on a grid " << N << "x" << M << std::endl;
         //loop over the generations
+        //create a buffer with the grids
+        cl::Buffer buf_x{ std::begin(grids[0]), std::end(grids[0]), true },
+                    buf_y{ std::begin(grids[1]), std::end(grids[1]), false };
         for(unsigned int gen = 0; gen < generation; gen++)
         {
-            //create a buffer with the grids
-            cl::Buffer buf_x{ std::begin(grids[0]), std::end(grids[0]), true },
-                       buf_y{ std::begin(grids[1]), std::end(grids[1]), false };
 
             // Explicit (blocking) dispatch of data before launch
             cl::copy(queue, std::begin(grids[0]), std::end(grids[0]), buf_x);
@@ -116,7 +94,7 @@ int main()
             // (Blocking) fetch of results
             cl::copy(queue, buf_y, std::begin(grids[0]), std::end(grids[0])); //basically copy the buffer for the next status to the current status;
             //grids[0] = grids[1]; 
-            dumpGrid(grids[0], gen, timeMeasure[gen], N, M, false);
+            dumpGrid(grids[0], gen, timeMeasure[gen], N, M, true);
             std::cout << '\n';
         }
 
