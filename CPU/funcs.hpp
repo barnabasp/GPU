@@ -23,10 +23,10 @@ private:
     //rule for the game
     int m_rule;
     //if there's an input - DO NOT USE, IT'S NOT SET UP
-    bool m_inp;
-
     int max_num_of_threads;
     int leftover_row;
+
+    bool m_inp;
     
 public:
     //constructors
@@ -36,7 +36,7 @@ public:
         m_rows = rows;
         m_cols = cols;
         m_rule = rule;
-        m_inp = 0;
+        m_inp = false;
         leftover_row = 0;
     }
 
@@ -48,8 +48,8 @@ public:
         m_inp = inp;
         leftover_row = 0;
     }
-    int getMaxThreads() {return max_num_of_threads;};
-    int getRule() {return m_rule;};
+    int getMaxThreads() const {return max_num_of_threads;};
+    int getRule() const {return m_rule;};
     auto setGrid() { grids[0].swap(grids[1]); };
     void initialize();
     void dumpGrid(); //prints out grid to console

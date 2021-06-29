@@ -23,18 +23,18 @@ void ConwayTable::initialize()
 }
 void ConwayTable::dumpGrid() //prints out grid to console
 {
-    int idx;
     for (int i_row = 1; i_row < m_rows-1; i_row++)
     {
         for (int i_col = 1; i_col < m_cols-1; i_col++)
         {
-            idx = i_row * m_cols + i_col;
+            int idx = i_row * m_cols + i_col;
             std::cout << grids[0][idx];
         }
         std::cout << "\n";
     }
 }
 void ConwayTable::writeFile(int gen, time_t genTime, bool parallel)
+//add string to args
 {
     //seting up the string name for the file
     std::stringstream fileName(""); fileName << "C:\\Users\\220mp\\Documents\\ELTE_MSc\\GPU\\Project\\CPU\\outputs\\" << "para" << parallel << "-"<< m_rows << "x" << m_cols << "-gen_" << gen  << ".txt";
@@ -42,12 +42,11 @@ void ConwayTable::writeFile(int gen, time_t genTime, bool parallel)
     //header
     file << "#T " << genTime << std::endl;
     //body
-    int idx;
     for (int i_row = 1; i_row < m_rows-1; i_row++)
     {
         for (int i_col = 1; i_col < m_cols-1; i_col++)
         {
-            idx = i_row * m_cols + i_col;
+            int idx = i_row * m_cols + i_col;
             if (grids[0][idx] == 1)
                 file << "+,";
             else
@@ -60,15 +59,13 @@ void ConwayTable::writeFile(int gen, time_t genTime, bool parallel)
 }
 void ConwayTable::applyRules() //apply the rules of the game
 {
-    int temp;
-    int idx = 0;
     //loop throught the grid, excluding the border indices
     for (int i_row = 1; i_row < m_rows-1; i_row++)
     {
         for (int i_col = 1; i_col < m_cols-1; i_col++)
         {
-            temp = 0;                                                //holder for dead or alive cells
-            idx = i_row * m_cols + i_col;
+            int temp = 0;                                                //holder for dead or alive cells
+            int idx = i_row * m_cols + i_col;
             temp += grids[0][(i_row - 1) * m_cols + i_col] + //up
                     grids[0][(i_row + 1) * m_cols + i_col] + //down
                     grids[0][i_row * m_cols + (i_col - 1)] + //left
@@ -92,7 +89,7 @@ void ConwayTable::applyRules() //apply the rules of the game
             }
         }
     }
-    grids[0] = grids[1];
+    setGrid();
 }
 //+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 //+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-Parallel Class functions+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
@@ -114,14 +111,19 @@ void ConwayTable::paraInitialize() //initialize for parallel - maybe not needed 
             //grids[0][i] = (dis(gen) > 0.5 ? 0 : 1);
             grids[0][i] = 0;
     }
+    /*
     grids[0][2 + m_cols * 2] = 1;
     grids[0][2 + m_cols * 3] = 1;
     grids[0][2 + m_cols * 4] = 1;
+    */
+    grids[0][2 + m_cols*2] = 1;
+    grids[0][3 + m_cols*3] = 1;
+    grids[0][1 + m_cols*4] = 1;
+    grids[0][2 + m_cols*4] = 1;
+    grids[0][3 + m_cols*4] = 1;
 }
 void ConwayTable::paraApplyRules(int i_thread, int row_per_thread)
 {
-    int temp;
-    int idx;
     int leftrow = 0; //extra row for the end
     if(i_thread == max_num_of_threads - 1) leftrow +=leftover_row; //if we are at the last thread add the remaining rows
     for (int i_row = i_thread * row_per_thread; i_row < (i_thread + 1) * row_per_thread + leftrow; i_row++)
@@ -129,8 +131,8 @@ void ConwayTable::paraApplyRules(int i_thread, int row_per_thread)
         if(i_row == 0) i_row++;
         for (int i_col = 1; i_col < m_cols-1; i_col++)
         {
-            temp = 0; //holder for dead or alive cells
-            idx = i_row * m_cols + i_col;
+            int temp = 0; //holder for dead or alive cells
+            int idx = i_row * m_cols + i_col;
             temp += grids[0][(i_row - 1) * m_cols + i_col] + //up
                     grids[0][(i_row + 1) * m_cols + i_col] + //down
                     grids[0][i_row * m_cols + (i_col - 1)] + //left

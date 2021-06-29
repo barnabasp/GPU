@@ -5,8 +5,8 @@
 //
 #include "funcs.hpp"
 #define GEN 10
-#define ROWS 1000
-#define COLS 1000
+#define ROWS 10
+#define COLS 10
 #define RULE 2
 
 int main(int, char**) 
@@ -25,7 +25,7 @@ int main(int, char**)
         auto t1 = std::chrono::high_resolution_clock::now();
         std::cout << '\n';
         table.setGrid();
-        //table.dumpGrid();
+        table.dumpGrid();
         timeMeasure.push_back(std::chrono::duration_cast<std::chrono::microseconds>(t1-t0).count());
         table.writeFile(gen, timeMeasure[gen], parallel);
         std::cout << "gen: " << gen << "\ttime in us: " << timeMeasure[gen] << std::endl;
