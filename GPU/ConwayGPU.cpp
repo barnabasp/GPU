@@ -21,6 +21,7 @@ int main()
     {
         /// GPU usual inits: queue, device, platform, context
         cl::CommandQueue queue = cl::CommandQueue::getDefault();
+        //print out which device
         cl::Device device = queue.getInfo<CL_QUEUE_DEVICE>();
         cl::Context context = queue.getInfo<CL_QUEUE_CONTEXT>();
         cl::Platform platform{device.getInfo<CL_DEVICE_PLATFORM>()};
@@ -38,8 +39,8 @@ int main()
         //create the functor
         auto conway = cl::KernelFunctor<cl::Buffer, cl::Buffer, cl_int, cl_int, cl_int>(program, "applyRules");
         //initialize
-        unsigned int N = 1e1;
-        unsigned int M = 1e1;
+        unsigned int N = (unsigned int)1e1;
+        unsigned int M = (unsigned int)1e1;
         unsigned int rule = 2;
         std::array<std::vector<cl_int>, 2> grids;
         unsigned int generation = 10;
@@ -72,7 +73,7 @@ int main()
         
         std::cout << "Executing game of life with rule: " << rule << " on a grid " << N << "x" << M << std::endl;
         //loop over the generations
-        //create a buffer with the grids
+        //create a buffer with the grids, readonly 1st and r+w 2nd
         cl::Buffer buf_x{ std::begin(grids[0]), std::end(grids[0]), true },
                     buf_y{ std::begin(grids[1]), std::end(grids[1]), false };
         for(unsigned int gen = 0; gen < generation; gen++)
@@ -80,7 +81,7 @@ int main()
 
             // Explicit (blocking) dispatch of data before launch
             cl::copy(queue, std::begin(grids[0]), std::end(grids[0]), buf_x);
-            cl::copy(queue, std::begin(grids[1]), std::end(grids[1]), buf_y);
+            //cl::copy(queue, std::begin(grids[1]), std::end(grids[1]), buf_y);
 
             // Launch time measurement
             auto t0 = std::chrono::high_resolution_clock::now();
